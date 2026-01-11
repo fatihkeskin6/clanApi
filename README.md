@@ -92,13 +92,10 @@ No database credentials are stored in the repository.
 
 ## Deployment Model (Cloud Run)
 
-- The FastAPI app runs inside a **Docker container**
-- The container is deployed to **Cloud Run**
-- Cloud Run connects to Cloud SQL via:
-  - Public IP + authorized networks **or**
-  - Cloud SQL connector (recommended)
+This service is continuously deployed from a GitHub repository using
+Cloud Run's native source integration. Each commit triggers a new
+revision without requiring a separate CI/CD pipeline.
 
-There is **no local execution path** for this service.
 
 ---
 
@@ -209,5 +206,6 @@ This project is intentionally minimal and focused on:
 ## License
 
 MIT
+
 
 
