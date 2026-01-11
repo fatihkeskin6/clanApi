@@ -383,29 +383,9 @@ All models and tests in this case ran successfully.
 
 ---
 
-## Security Notes
+### Big Query: daily_metrics
 
-- No secrets are committed to the repository
-- Service account keys are for local development only
-- Keys should be rotated or revoked after finishing the case study
-- Prefer `gcloud auth application-default login` for personal development
-
----
-
-## Summary
-
-This case study demonstrates:
-- A production-style API deployed serverlessly on GCP
-- Secure PostgreSQL usage via Cloud SQL
-- Data ingestion into BigQuery
-- Analytics modeling and testing with dbt
-- Clean, reviewable, and reproducible workflows
-
-
-
-
-
-
+<img width="1328" height="333" alt="Screenshot 2026-01-11 at 21 40 49" src="https://github.com/user-attachments/assets/71aad318-fe74-4c46-98f8-f59aff29830e" />
 
 
 
