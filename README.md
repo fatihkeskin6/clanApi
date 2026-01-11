@@ -80,7 +80,7 @@ The application **relies entirely on environment variables** provided by Cloud R
 
 Format:
 ```
-postgresql://USER:PASSWORD@HOST:5432/DB_NAME
+postgresql://USERNAME:PASSWORD@/DB_NAME?host=/cloudsql/PROJECT_ID:REGION:INSTANCE_NAME
 ```
 
 In Cloud Run, this is configured via:
@@ -209,4 +209,5 @@ This project is intentionally minimal and focused on:
 ## License
 
 MIT
+
 
