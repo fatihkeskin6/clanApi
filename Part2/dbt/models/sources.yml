@@ -1,0 +1,55 @@
+version: 2
+
+sources:
+  - name: vertigo_case
+    database: vertigo-483902
+    schema: vertigo_case
+    tables:
+      - name: user_level_daily_metrics
+        columns:
+          - name: user_id
+            tests:
+              - not_null
+
+          - name: event_date
+            tests:
+              - not_null
+
+          # country kaynakta null gelebilir; modelde COALESCE ile handle ediyoruz
+          - name: country
+
+          - name: platform
+            tests:
+              - not_null
+
+          - name: iap_revenue
+            tests:
+              - dbt_utils.expression_is_true:
+                  arguments:
+                    expression: ">= 0"
+                  config:
+                    where: "iap_revenue is not null"
+
+          - name: ad_revenue
+            tests:
+              - dbt_utils.expression_is_true:
+                  arguments:
+                    expression: ">= 0"
+                  config:
+                    where: "ad_revenue is not null"
+
+          - name: match_start_count
+            tests:
+              - dbt_utils.expression_is_true:
+                  arguments:
+                    expression: ">= 0"
+                  config:
+                    where: "match_start_count is not null"
+
+          - name: match_end_count
+            tests:
+              - dbt_utils.expression_is_true:
+                  arguments:
+                    expression: ">= 0"
+                  config:
+                    where: "match_end_count is not null"

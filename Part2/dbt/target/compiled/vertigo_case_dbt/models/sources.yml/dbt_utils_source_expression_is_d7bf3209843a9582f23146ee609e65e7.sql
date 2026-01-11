@@ -1,0 +1,10 @@
+
+
+
+
+select
+    1
+from (select * from `vertigo-483902`.`vertigo_case`.`user_level_daily_metrics` where iap_revenue is not null) dbt_subquery
+
+where not(iap_revenue >= 0)
+

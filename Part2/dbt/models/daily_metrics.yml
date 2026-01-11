@@ -1,0 +1,90 @@
+version: 2
+
+models:
+  - name: daily_metrics
+    description: "Daily metrics aggregated by event_date, country, platform."
+
+    columns:
+      - name: event_date
+        data_tests:
+          - not_null
+
+      - name: country
+        data_tests:
+          - not_null
+
+      - name: platform
+        data_tests:
+          - not_null
+          - accepted_values:
+              values: ["ANDROID", "IOS"]
+
+      - name: dau
+        data_tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: ">= 0"
+
+      - name: total_iap_revenue
+        data_tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: ">= 0"
+
+      - name: total_ad_revenue
+        data_tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: ">= 0"
+
+      - name: arpdau
+        data_tests:
+          # SAFE_DIVIDE -> null olabilir (teoride dau=0). null'ları filtreleyip kontrol ediyoruz.
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: ">= 0"
+              config:
+                where: "arpdau is not null"
+
+      - name: matches_started
+        data_tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: ">= 0"
+
+      - name: match_per_dau
+        data_tests:
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: ">= 0"
+              config:
+                where: "match_per_dau is not null"
+
+      - name: win_ratio
+        data_tests:
+          # match_end_count=0 ise SAFE_DIVIDE -> null olur, null'ları filtreliyoruz
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: "between 0 and 1"
+              config:
+                where: "win_ratio is not null"
+
+      - name: defeat_ratio
+        data_tests:
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: "between 0 and 1"
+              config:
+                where: "defeat_ratio is not null"
+
+      - name: server_error_per_dau
+        data_tests:
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: ">= 0"
+              config:
+                where: "server_error_per_dau is not null"

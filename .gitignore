@@ -1,0 +1,3 @@
+# Secrets
+*.json
+Part2/data_sender_to_bq/*.json
