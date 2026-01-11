@@ -176,7 +176,7 @@ Rules:
 - `name` is required
 - `region` is required and normalized to uppercase
 
-<img width="1384" height="678" alt="image" src="https://github.com/user-attachments/assets/a44e8871-ffb8-4980-a4ff-c3929c55b2c2" />
+<img width="750" height="500" alt="image" src="https://github.com/user-attachments/assets/a44e8871-ffb8-4980-a4ff-c3929c55b2c2" />
 
 ---
 
@@ -200,7 +200,7 @@ Response:
 Rules:
 - Minimum **3 characters**
 - Case-insensitive search
-<img width="700" height="550" alt="image" src="https://github.com/user-attachments/assets/79eb1d38-18ed-4387-b2a0-a09a4b6e7056" />
+<img width="750" height="550" alt="image" src="https://github.com/user-attachments/assets/79eb1d38-18ed-4387-b2a0-a09a4b6e7056" />
 
 ---
 
@@ -211,7 +211,7 @@ Rules:
 Rules:
 - `clan_id` must be a valid UUID
 - Returns 404 if not found
-<img width="959" height="439" alt="image" src="https://github.com/user-attachments/assets/3720ddf1-aa0a-429a-8ca0-1d84a2a081df" />
+<img width="750" height="439" alt="image" src="https://github.com/user-attachments/assets/3720ddf1-aa0a-429a-8ca0-1d84a2a081df" />
 
 ---
 
@@ -378,6 +378,7 @@ All models and tests in this case ran successfully.
 <img width="1536" height="847" alt="image" src="https://github.com/user-attachments/assets/000682b7-1d17-4dae-a20d-fb3d76526a0d" />
 
 https://lookerstudio.google.com/s/gq-6b3OewX8
+
 
 
 
