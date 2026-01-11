@@ -245,37 +245,33 @@ dbt model (analytics)
 dbt tests + artifacts
 ```
 
-- Raw input: CSV files under `data_sender_to_bq/data/`
-- Raw table: `vertigo_case.user_level_daily_metrics`
-- Analytics output: `daily_metrics` 
-- Quality control: dbt tests
+### Layered Data Flow
+
+CSV files  
+→ BigQuery raw table  
+→ staging models  
+→ intermediate models  
+→ mart models (analytics-ready)
 
 ---
 
 ### Project Structure (Part 2)
 
 ```
-Part2/
-  data_sender_to_bq/
-    data/                  # Raw CSV exports
-    sender.py              # CSV → BigQuery loader
-    vertigo-...json        # LOCAL ONLY service account key
-
-  dbt/
-    dbt_project.yml
-    packages.yml
-    package-lock.yml
-    models/
-      sources.yml          # Raw table definition + source tests
-      daily_metrics.sql    # Analytics transformation
-      daily_metrics.yml    # Model docs + tests
-    target/                # dbt run/test artifacts
-    logs/
-    dbt_packages/
+Part2/dbt/
+- models/
+  - staging/
+    - sources.yml
+    - stg_user_level_daily_metrics.sql
+  - intermediate/
+    - int_daily_metrics_agg.sql
+  - marts/
+    - daily_metrics.sql
+    - daily_metrics.yml
 ```
 ---
 
-### Step 1 — Load CSVs into BigQuery
+### Initialization — Load CSVs into BigQuery
 
 Script: `Part2/data_sender_to_bq/sender.py`
 
@@ -285,75 +281,81 @@ What it does:
 - First file uses `WRITE_TRUNCATE`
 - Remaining files use `WRITE_APPEND`
 
-This pattern allows clean table creation followed by incremental appends.
----
-
-### Step 2 — dbt Modeling
-
-Raw event-level data is not analysis-ready.
-
-dbt is used here to:
-- Standardize dimensions
-- Define KPIs in one place
-- Apply consistent null handling
-- Enforce data quality with tests
 
 ---
+## Staging Layer
 
-### Source (sources.yml)
+**Model:** `stg_user_level_daily_metrics`
 
-The raw BigQuery table is registered as a dbt source:
+Purpose:
+- Acts as a thin cleaning layer on top of the raw BigQuery table
+- Keeps transformations explicit and easy to audit
 
-- Dataset: `vertigo_case`
-- Table: `user_level_daily_metrics`
+Responsibilities:
+- Reads from the raw source table `vertigo_case.user_level_daily_metrics`
+- Trims and normalizes string fields
+- Converts empty or null `country` values to `UNKNOWN`
+- Normalizes `platform` values
+- Converts null numeric values to `0`
+- Filters out records with null `event_date`
 
-Basic source tests are applied:
+This layer does not perform any aggregation.
+
+## Intermediate Layer
+
+**Model:** `int_daily_metrics_agg`
+
+Purpose:
+- Performs heavy aggregations once
+- Prepares metrics required by multiple KPIs
+
+Responsibilities:
+- Groups data by:
+  - event_date
+  - country
+  - platform
+- Calculates:
+  - Daily Active Users (DAU)
+  - Revenue totals
+  - Match counts
+  - Victory and defeat counts
+  - Server error totals
+
+This layer keeps raw totals separate from ratio calculations.
+
+---
+
+## Mart Layer (Analytics)
+
+**Model:** `daily_metrics`
+
+Purpose:
+- Final analytics-ready dataset
+- Directly consumed by BI tools
+
+Responsibilities:
+- Calculates final KPIs confirming business logic:
+  - ARPDAU
+  - Matches per DAU
+  - Win and defeat ratios
+  - Server error rate per DAU
+- Uses SAFE_DIVIDE to prevent divide-by-zero errors
+- Produces a clean, documented, and tested dataset
+<img width="371" height="147" alt="image" src="https://github.com/user-attachments/assets/684639a7-168b-49c3-ae0a-c6f7aed52942" />
+
+---
+## Data Quality & Testing
+
+### Source Tests (sources.yml)
 - Critical fields must not be null
 - Numeric fields must be non-negative
 
-This ensures the raw data is reasonable before analytics are built on top.
-
----
-
-### Analytics Model (daily_metrics.sql)
-
-The model produces daily aggregates grouped by:
-- `event_date`
-- `country`
-- `platform`
-
-Metrics include:
-- Daily active users (DAU) : Number of distinct users active on a given day
-- In-app and ad revenue totals : Total IAP and ad revenue per day
-- ARPDAU : Average Revenue Per Daily Active User
-- Match and win/defeat KPIs : Gameplay engagement and outcome ratios
-- Server error rates : Server error events normalized per DAU
-
-Data cleanup rules include:
-- Missing countries converted to `UNKNOWN`
-- Platform normalized to `ANDROID` / `IOS`
-- Null numeric values treated as 0
-- `SAFE_DIVIDE` used to avoid divide-by-zero failures
-
----
-
-### Model Tests & Documentation (daily_metrics.yml)
-
-This file adds:
-- Model-level documentation
-- Column descriptions
-- Data quality tests
-
-Examples:
-- `platform` must be `ANDROID` or `IOS`
-- Revenue and counts must be >= 0
+### Model Tests (daily_metrics.yml)
+- platform must be ANDROID or IOS
+- Revenue and count metrics must be >= 0
 - Ratio metrics must be between 0 and 1
-
-Some tests are filtered with `where: metric is not null` because `SAFE_DIVIDE` can
-legitimately return NULL when the denominator is zero.
-
-
-
+- Some tests are filtered with `where: metric is not null`
+  because SAFE_DIVIDE can legitimately return NULL
 ---
 
 ### dbt Artifacts
@@ -378,4 +380,5 @@ All models and tests in this case ran successfully.
 <img width="1536" height="847" alt="image" src="https://github.com/user-attachments/assets/000682b7-1d17-4dae-a20d-fb3d76526a0d" />
 
 https://lookerstudio.google.com/s/gq-6b3OewX8
+
 
