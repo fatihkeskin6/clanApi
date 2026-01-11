@@ -211,7 +211,7 @@ Rules:
 Rules:
 - `clan_id` must be a valid UUID
 - Returns 404 if not found
-<img width="750" height="439" alt="image" src="https://github.com/user-attachments/assets/3720ddf1-aa0a-429a-8ca0-1d84a2a081df" />
+<img width="750" height="437" alt="image" src="https://github.com/user-attachments/assets/c1938de6-3b02-4974-921e-57e15742eb21" />
 
 ---
 
@@ -378,3 +378,4 @@ All models and tests in this case ran successfully.
 <img width="1536" height="847" alt="image" src="https://github.com/user-attachments/assets/000682b7-1d17-4dae-a20d-fb3d76526a0d" />
 
 https://lookerstudio.google.com/s/gq-6b3OewX8
+
