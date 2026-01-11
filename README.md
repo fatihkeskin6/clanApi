@@ -221,7 +221,7 @@ Rules:
 ---
 
 
-## Part 2 — BigQuery + dbt (Analytics)
+# Part 2 — BigQuery + dbt (Analytics)
 
 This part focuses entirely on the **data and analytics layer**. There is no web service here.
 
@@ -386,6 +386,7 @@ All models and tests in this case ran successfully.
 ### Big Query: daily_metrics
 
 <img width="1328" height="333" alt="Screenshot 2026-01-11 at 21 40 49" src="https://github.com/user-attachments/assets/71aad318-fe74-4c46-98f8-f59aff29830e" />
+
 
 
 
