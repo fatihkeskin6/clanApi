@@ -3,16 +3,14 @@ import glob
 from google.cloud import bigquery
 from google.oauth2 import service_account
 
-
-PROJECT_ID = "vertigo-483902"
-DATASET_ID = "vertigo_case"          # <-- burayı senin istediğin dataset yap
+# Credentials are hidden, this file wont be executed anymore just to show you how did I upload existing sample_data I received to BigQuery as RAW data.
+PROJECT_ID = "***"
+DATASET_ID = "***"          
 TABLE_ID = "user_level_daily_metrics"
 LOCATION = "europe-west1"
 
 DATA_DIR = './data/'
-# Service Account key (DIRECT, no ENV)
-SERVICE_ACCOUNT_FILE = r"./vertigo-483902-02b8a244b766.json"
-# Hata olursa durmasın, skip edip devam etsin mi?
+SERVICE_ACCOUNT_FILE = r"./***.json"
 CONTINUE_ON_ERROR = True
 
 
@@ -57,7 +55,7 @@ def load_files():
         job_config = bigquery.LoadJobConfig(
             source_format=bigquery.SourceFormat.CSV,
             autodetect=True,
-            skip_leading_rows=1,  # header yoksa 0 yap
+            skip_leading_rows=1,
             write_disposition=write_disposition,
             allow_quoted_newlines=True,
         )
@@ -66,7 +64,6 @@ def load_files():
 
         try:
             with open(path, "rb") as f:
-                # 🔥 resumable kapalı: Ctrl+C sonrası 400'leri çok azaltır
                 job = client.load_table_from_file(
                     f,
                     destination=table_fqdn,
@@ -78,17 +75,17 @@ def load_files():
 
 
             job.result()
-            print(f"    done, rows loaded: {job.output_rows}")
+            print(f"done, rows loaded: {job.output_rows}")
 
         except Exception as e:
-            print(f"    ❌ FAILED on file: {os.path.basename(path)}")
-            print(f"    Error: {e}")
+            print(f" fail on file: {os.path.basename(path)}")
+            print(f" error: {e}")
             if not CONTINUE_ON_ERROR:
                 raise
 
-    # summary
+    # log
     tbl = client.get_table(table_fqdn)
-    print("\n✅ LOAD COMPLETED")
+    print("\n LOAD COMPLETED3213213213213312")
     print(f"Table: {tbl.project}.{tbl.dataset_id}.{tbl.table_id}")
     print(f"Rows:  {tbl.num_rows}")
     print(f"Size:  {tbl.num_bytes / (1024**2):.2f} MB")
