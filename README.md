@@ -60,7 +60,45 @@ CREATE TABLE public.clans (
 CREATE INDEX idx_clans_name_lower --In API '/search' endpoint searches as lower(name)  pgsql cant use index for case-insenseitive search, without index it will apply full scan index. so we apply index lower(name).
   ON public.clans (lower(name));
 ```
+## File & Directory Overview
 
+### Part1/app/main.py
+- FastAPI application entry point
+- Initializes the FastAPI app
+- Registers API routes
+- Exposes a health check endpoint (`GET /`) to verify service availability
+
+---
+
+### Part1/app/router.py
+- Contains all API route definitions
+- Implements CRUD-style endpoints for the `clans` resource:
+  - Create clan
+  - List clans
+  - Search clans (case-insensitive)
+  - Delete clan
+- Handles request validation and basic error handling
+- Executes SQL queries using a PostgreSQL connection
+
+---
+
+### Part1/app/db_conn.py
+- Database connection helper module
+- Reads the `DATABASE_URL` from environment variables
+- Creates a PostgreSQL connection using `psycopg`
+- Uses dictionary-based row results for easier JSON serialization
+- Designed for Cloud Run usage with Cloud SQL
+
+---
+
+### Part1/sample_data_to_db/one_time_to_db.py
+- One-time utility script used during initial setup
+- Loads sample clan data from a CSV file into the database
+- Normalizes input data (uppercases region, validates fields)
+- Parses optional timestamps or falls back to current UTC time
+- Not used in runtime or production execution
+
+---
 Notes:
 - `id` is generated using `gen_random_uuid()` (pgcrypto extension)
 - `region` is stored uppercased by the API
@@ -206,6 +244,7 @@ This project is intentionally minimal and focused on:
 ## License
 
 MIT
+
 
 
 
