@@ -223,9 +223,7 @@ Rules:
 
 # Part 2 — BigQuery + dbt (Analytics)
 
-This part focuses entirely on the **data and analytics layer**. There is no web service here.
-
-The goal is to take raw CSV exports, load them into BigQuery, and turn them into an **analytics-ready dataset** using dbt — with tests and documentation included.
+The goal is to take raw CSV exports, load them into BigQuery, and turn it into an **analytics-ready dataset** using dbt, with tests and documentation included.
 
 ---
 
@@ -246,7 +244,7 @@ dbt tests + artifacts
 
 - Raw input: CSV files under `data_sender_to_bq/data/`
 - Raw table: `vertigo_case.user_level_daily_metrics`
-- Analytics output: `daily_metrics` (built by dbt)
+- Analytics output: `daily_metrics` 
 - Quality control: dbt tests
 
 ---
@@ -322,14 +320,14 @@ The model produces daily aggregates grouped by:
 - `platform`
 
 Metrics include:
-- Daily active users (DAU)
-- In-app and ad revenue totals
-- ARPDAU
-- Match and win/defeat KPIs
-- Server error rates
+- Daily active users (DAU) : Number of distinct users active on a given day
+- In-app and ad revenue totals : Total IAP and ad revenue per day
+- ARPDAU : Average Revenue Per Daily Active User
+- Match and win/defeat KPIs : Gameplay engagement and outcome ratios
+- Server error rates : Server error events normalized per DAU
 
 Data cleanup rules include:
-- Missing countries bucketed as `UNKNOWN`
+- Missing countries converted to `UNKNOWN`
 - Platform normalized to `ANDROID` / `IOS`
 - Null numeric values treated as 0
 - `SAFE_DIVIDE` used to avoid divide-by-zero failures
@@ -386,6 +384,7 @@ All models and tests in this case ran successfully.
 ### Big Query: daily_metrics
 
 <img width="1328" height="333" alt="Screenshot 2026-01-11 at 21 40 49" src="https://github.com/user-attachments/assets/71aad318-fe74-4c46-98f8-f59aff29830e" />
+
 
 
 
