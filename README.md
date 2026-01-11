@@ -212,18 +212,6 @@ Rules:
 
 ---
 
-## One-Time Data Load (Optional)
-
-A helper script exists to populate the database from CSV:
-
-```
-Part1/sample_data_to_db/one_time_to_db.py
-```
-
-This script was used **only during initial setup** and is **not part of runtime execution**.
-
----
-
 ## Security Notes
 
 - No credentials are committed to the repository
@@ -244,6 +232,7 @@ This project is intentionally minimal and focused on:
 ## License
 
 MIT
+
 
 
 
