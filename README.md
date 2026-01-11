@@ -1,11 +1,30 @@
 # Clan API (Part 1)
 
-A small **FastAPI + PostgreSQL** service to manage *clans*.
+A small **FastAPI + PostgreSQL** service to manage *clans*, deployed on **Google Cloud Platform**.
 
-- FastAPI app with simple health endpoint
-- PostgreSQL persistence (UUID primary key assumed)
+- FastAPI REST API
+- PostgreSQL persistence on **GCP Cloud SQL**
+- Deployed on **Cloud Run**
 - Endpoints to **create**, **list**, **search**, and **delete** clans
-- One-time script to load sample data from CSV
+
+---
+
+## Architecture Overview
+
+```
+Client
+  |
+  v
+Cloud Run (FastAPI)
+  |
+  v
+Cloud SQL (PostgreSQL)
+```
+
+- The application **does not run locally**
+- Database access is handled via **Cloud SQL**
+- Authentication is handled by **Cloud Run service identity**
+- Configuration is injected via **environment variables**
 
 ---
 
@@ -18,130 +37,96 @@ Part1/
     router.py        # API routes
     db_conn.py       # DB connection helper (reads DATABASE_URL)
   sample_data_to_db/
-    one_time_to_db.py  # Loads clan_sample_data.csv into DB
+    one_time_to_db.py  # One-time CSV loader (used during setup)
 ```
 
 ---
 
-## Requirements
+## Database (Cloud SQL – PostgreSQL)
 
-- Python 3.10+ (3.11 recommended)
-- PostgreSQL 13+ (any recent version is fine)
+This application uses **Google Cloud SQL for PostgreSQL**.
 
-Python deps (minimum):
-- `fastapi`
-- `uvicorn`
-- `psycopg` (psycopg v3)
+### Table Definition
 
----
-
-## Configuration
-
-This project reads the DB connection string from an environment variable:
-
-- `DATABASE_URL` **(required)**
-
-Format:
-```
-postgresql://user:pass@host:5432/dbname
-```
-
-> If `DATABASE_URL` is missing, the app raises an error on startup.
-
-### Example (local)
-
-**Windows (PowerShell)**
-```powershell
-$env:DATABASE_URL="postgresql://postgres:postgres@localhost:5432/clan_db"
-```
-
-**macOS/Linux**
-```bash
-export DATABASE_URL="postgresql://postgres:postgres@localhost:5432/clan_db"
-```
-
----
-
-## Database Setup
-
-Create a database and a `clans` table.
-
-### 1) Create DB
-
-Example:
-```sql
-CREATE DATABASE clan_db;
-```
-
-### 2) Create table
-
-Run the following SQL in your database:
+The `clans` table is created directly in Cloud SQL.
 
 ```sql
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-
-CREATE TABLE IF NOT EXISTS clans (
-  id         UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  name       TEXT NOT NULL,
-  region     TEXT NOT NULL,
+CREATE TABLE public.clans (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL,
+  region TEXT NOT NULL,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-CREATE INDEX IF NOT EXISTS idx_clans_name ON clans (name);
-CREATE INDEX IF NOT EXISTS idx_clans_created_at ON clans (created_at DESC);
+CREATE INDEX idx_clans_name_lower
+  ON public.clans (lower(name));
 ```
 
-> Notes:
-> - API expects `id` to be a UUID.
-> - `region` is stored uppercased in the API.
+Notes:
+- `id` is generated using `gen_random_uuid()` (pgcrypto extension)
+- `region` is stored uppercased by the API
+- Case-insensitive search is supported via `lower(name)` index
 
 ---
 
-## Run Locally
+## Runtime Configuration (Cloud Run)
 
-### 1) Create & activate a virtual environment
+The application **relies entirely on environment variables** provided by Cloud Run.
 
-**Windows**
-```powershell
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
+### Required Environment Variable
+
+| Variable | Description |
+|--------|-------------|
+| `DATABASE_URL` | Cloud SQL PostgreSQL connection string |
+
+Format:
+```
+postgresql://USER:PASSWORD@HOST:5432/DB_NAME
 ```
 
-**macOS/Linux**
-```bash
-python -m venv .venv
-source .venv/bin/activate
-```
+In Cloud Run, this is configured via:
+- **Cloud Run → Service → Variables & Secrets**
 
-### 2) Install dependencies
+No database credentials are stored in the repository.
 
-```bash
-pip install -r requirements.txt
-```
+---
 
-If you don't have a `requirements.txt` yet, you can install quickly with:
-```bash
-pip install fastapi uvicorn psycopg
-```
+## Deployment Model (Cloud Run)
 
-### 3) Start the API
+- The FastAPI app runs inside a **Docker container**
+- The container is deployed to **Cloud Run**
+- Cloud Run connects to Cloud SQL via:
+  - Public IP + authorized networks **or**
+  - Cloud SQL connector (recommended)
 
-Run from the **Part1** directory:
-
-```bash
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
-```
-
-Health check:
-- `GET /` → `{"data":{"service":"clan-api","status":"ok"}}`
+There is **no local execution path** for this service.
 
 ---
 
 ## API Endpoints
 
-Base URL: `http://localhost:8000`
+Base URL (example):
+```
+https://<cloud-run-service-url>
+```
 
-### Create a clan
+### Health Check
+
+`GET /`
+
+Response:
+```json
+{
+  "data": {
+    "service": "clan-api",
+    "status": "ok"
+  }
+}
+```
+
+---
+
+### Create Clan
 
 `POST /clans`
 
@@ -153,22 +138,15 @@ Body:
 }
 ```
 
-- `name` required
-- `region` required (stored as uppercase)
+Rules:
+- `name` is required
+- `region` is required and normalized to uppercase
 
-Example:
-```bash
-curl -X POST "http://localhost:8000/clans"   -H "Content-Type: application/json"   -d '{"name":"Night Owls","region":"eu"}'
-```
+---
 
-### List clans
+### List Clans
 
 `GET /clans`
-
-Example:
-```bash
-curl "http://localhost:8000/clans"
-```
 
 Response:
 ```json
@@ -178,92 +156,57 @@ Response:
 }
 ```
 
-### Search clans by name (case-insensitive)
+---
 
-`GET /clans/search?name=...`
+### Search Clans
+
+`GET /clans/search?name=owl`
 
 Rules:
-- `name` must be at least **3 characters** (otherwise 400)
+- Minimum **3 characters**
+- Case-insensitive search
 
-Example:
-```bash
-curl "http://localhost:8000/clans/search?name=owl"
-```
+---
 
-### Delete a clan
+### Delete Clan
 
 `DELETE /clans/{clan_id}`
 
 Rules:
-- `clan_id` must be a valid UUID (otherwise 400)
+- `clan_id` must be a valid UUID
 - Returns 404 if not found
 
-Example:
-```bash
-curl -X DELETE "http://localhost:8000/clans/aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
+---
+
+## One-Time Data Load (Optional)
+
+A helper script exists to populate the database from CSV:
+
 ```
+Part1/sample_data_to_db/one_time_to_db.py
+```
+
+This script was used **only during initial setup** and is **not part of runtime execution**.
 
 ---
 
-## Load Sample Data (One-Time)
+## Security Notes
 
-There is a helper script to load sample CSV data into the `clans` table.
-
-### 1) Place CSV file
-
-The script expects `clan_sample_data.csv` in the same directory as the script:
-```
-Part1/sample_data_to_db/clan_sample_data.csv
-```
-
-CSV columns expected:
-- `name`
-- `region`
-- `created_at` *(optional, ISO-8601; e.g., `2026-01-01T10:00:00Z`)*
-
-### 2) Run the script
-
-From the **Part1** directory:
-
-```bash
-python -m sample_data_to_db.one_time_to_db
-```
-
-The script:
-- Skips rows with missing `name` or `region`
-- Uppercases region
-- Parses `created_at` if provided (falls back to current UTC on parsing errors)
+- No credentials are committed to the repository
+- Secrets are managed via **Cloud Run environment variables**
+- Cloud SQL access is restricted at the network / IAM level
 
 ---
 
-## Troubleshooting
+## Notes
 
-### `RuntimeError: DATABASE_URL env var is required`
-Set `DATABASE_URL` before starting the app or running the loader.
-
-### `psycopg` module not found
-Install it:
-```bash
-pip install psycopg
-```
-
-### Connection issues
-Verify:
-- PostgreSQL is running
-- Host/port/user/password in `DATABASE_URL` are correct
-- DB and table exist
-
----
-
-## Notes / Improvements (Optional)
-
-For a production service you’d typically add:
-- Pydantic models for request/response validation
-- More detailed error handling & logging
-- Connection pooling (or a pooler like PgBouncer)
-- Migrations (Alembic)
+This project is intentionally minimal and focused on:
+- Clean API design
+- Cloud-native deployment (GCP)
+- Separation of code and configuration
 
 ---
 
 ## License
-MIT (or your preferred license)
+
+MIT
