@@ -1,6 +1,6 @@
 # Clan API (Part 1)
 
-A small **FastAPI + PostgreSQL** service to manage *clans*, deployed on **Google Cloud Platform**.
+ **FastAPI + PostgreSQL** service to manage *clans*, deployed on **Google Cloud Platform**.
 
 - FastAPI REST API
 - PostgreSQL persistence on **GCP Cloud SQL**
@@ -384,6 +384,7 @@ All models and tests in this case ran successfully.
 ### Big Query: daily_metrics
 
 <img width="1328" height="333" alt="Screenshot 2026-01-11 at 21 40 49" src="https://github.com/user-attachments/assets/71aad318-fe74-4c46-98f8-f59aff29830e" />
+
 
 
 
