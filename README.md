@@ -191,8 +191,6 @@ Response:
   "count": 10
 }
 ```
-<img width="1389" height="662" alt="image" src="https://github.com/user-attachments/assets/79eb1d38-18ed-4387-b2a0-a09a4b6e7056" />
-
 ---
 
 ### Search Clans
@@ -202,6 +200,7 @@ Response:
 Rules:
 - Minimum **3 characters**
 - Case-insensitive search
+<img width="700" height="550" alt="image" src="https://github.com/user-attachments/assets/79eb1d38-18ed-4387-b2a0-a09a4b6e7056" />
 
 ---
 
@@ -379,6 +378,7 @@ All models and tests in this case ran successfully.
 <img width="1536" height="847" alt="image" src="https://github.com/user-attachments/assets/000682b7-1d17-4dae-a20d-fb3d76526a0d" />
 
 https://lookerstudio.google.com/s/gq-6b3OewX8
+
 
 
 
