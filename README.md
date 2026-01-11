@@ -334,7 +334,80 @@ Data cleanup rules include:
 - Platform normalized to `ANDROID` / `IOS`
 - Null numeric values treated as 0
 - `SAFE_DIVIDE` used to avoid divide-by-zero failures
+```sql
+-- Aggregation user_level_daily_metrics by event_date, country, platform
 
+with cte as (
+  -- Preprocessing query for data cleansing
+  select
+    user_id,
+    event_date,
+
+    -- Group-by fields
+    -- Convert null or empty country values to UNKNOWN
+    coalesce(nullif(trim(country), ''), 'UNKNOWN') as country,
+
+    -- Standardize platform values and handle nulls
+    coalesce(nullif(upper(trim(platform)), ''), 'UNKNOWN') as platform,
+
+    -- Convert numeric NULLs to 0 to ensure safe aggregations
+    coalesce(iap_revenue, 0) as iap_revenue,
+    coalesce(ad_revenue, 0) as ad_revenue,
+    coalesce(match_start_count, 0) as match_start_count,
+    coalesce(match_end_count, 0) as match_end_count,
+    coalesce(victory_count, 0) as victory_count,
+    coalesce(defeat_count, 0) as defeat_count,
+    coalesce(server_connection_error, 0) as server_connection_error
+
+  from {{ source('vertigo_case', 'user_level_daily_metrics') }}
+  where event_date is not null
+),
+
+agg as (
+  -- Aggregate metrics by event_date, country, and platform
+  select
+    event_date,
+    country,
+    platform,
+
+    count(distinct user_id) as dau,
+
+    sum(iap_revenue) as total_iap_revenue,
+    sum(ad_revenue) as total_ad_revenue,
+    sum(match_start_count) as matches_started,
+
+    -- Values required for ratio calculations
+    sum(match_end_count) as match_end_count,
+    sum(victory_count) as victory_count,
+    sum(defeat_count) as defeat_count,
+    sum(server_connection_error) as server_connection_error
+
+  from cte
+  group by event_date, country, platform
+)
+
+-- Final KPI layer
+select
+  event_date,
+  country,
+  platform,
+
+  dau,
+
+  total_iap_revenue,
+  total_ad_revenue,
+
+  safe_divide(total_iap_revenue + total_ad_revenue, dau) as arpdau,
+
+  matches_started,
+  safe_divide(matches_started, dau) as match_per_dau,
+
+  safe_divide(victory_count, match_end_count) as win_ratio,
+  safe_divide(defeat_count, match_end_count) as defeat_ratio,
+
+  safe_divide(server_connection_error, dau) as server_error_per_dau
+
+from agg
 ---
 
 ### Model Tests & Documentation (daily_metrics.yml)
@@ -378,6 +451,7 @@ All models and tests in this case ran successfully.
 <img width="1536" height="847" alt="image" src="https://github.com/user-attachments/assets/000682b7-1d17-4dae-a20d-fb3d76526a0d" />
 
 https://lookerstudio.google.com/s/gq-6b3OewX8
+
 
 
 
