@@ -272,10 +272,6 @@ Part2/
     logs/
     dbt_packages/
 ```
-
-> Folders like `target/`, `logs/`, and `dbt_packages/` are usually not committed.
-> They are included here intentionally so reviewers can see actual dbt execution results.
-
 ---
 
 ### Step 1 — Load CSVs into BigQuery
@@ -408,6 +404,7 @@ This case study demonstrates:
 - Data ingestion into BigQuery
 - Analytics modeling and testing with dbt
 - Clean, reviewable, and reproducible workflows
+
 
 
 
