@@ -349,22 +349,7 @@ Examples:
 Some tests are filtered with `where: metric is not null` because `SAFE_DIVIDE` can
 legitimately return NULL when the denominator is zero.
 
----
 
-### Running dbt
-
-From `Part2/dbt/`:
-
-```bash
-dbt deps
-dbt build
-```
-
-Alternative commands:
-```bash
-dbt test
-dbt run --select daily_metrics
-```
 
 ---
 
@@ -390,6 +375,7 @@ All models and tests in this case ran successfully.
 <img width="1536" height="847" alt="image" src="https://github.com/user-attachments/assets/000682b7-1d17-4dae-a20d-fb3d76526a0d" />
 
 https://lookerstudio.google.com/s/gq-6b3OewX8
+
 
 
 
