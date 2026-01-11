@@ -385,7 +385,11 @@ All models and tests in this case ran successfully.
 
 <img width="1328" height="333" alt="Screenshot 2026-01-11 at 21 40 49" src="https://github.com/user-attachments/assets/71aad318-fe74-4c46-98f8-f59aff29830e" />
 
+### Looker: Dashboard
 
+<img width="1536" height="847" alt="image" src="https://github.com/user-attachments/assets/000682b7-1d17-4dae-a20d-fb3d76526a0d" />
+
+https://lookerstudio.google.com/s/gq-6b3OewX8
 
 
 
