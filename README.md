@@ -221,318 +221,195 @@ Rules:
 ---
 
 
-# Part 2 — BigQuery + dbt (Analytics Case)
+## Part 2 — BigQuery + dbt (Analytics)
 
-This part of the case study focuses on:
-1) **Loading raw CSV exports into BigQuery**, and  
-2) **Building an analytics model with dbt** on top of the raw table, including **data quality tests** and **documented transformations**.
+This part focuses entirely on the **data and analytics layer**. There is no web service here.
 
-> This is not a web application. It is a data/analytics workflow meant for development and review.
+The goal is to take raw CSV exports, load them into BigQuery, and turn them into an **analytics-ready dataset** using dbt — with tests and documentation included.
 
 ---
 
-## High-level Flow
+### High-level Flow
 
 ```
-CSV files  ->  BigQuery raw table (user_level_daily_metrics)
-                    |
-                    v
-           dbt model (daily_metrics)
-                    |
-                    v
-           dbt tests + run artifacts
+CSV files
+   |
+   v
+BigQuery (raw table)
+   |
+   v
+dbt model (analytics)
+   |
+   v
+dbt tests + artifacts
 ```
 
-- Raw inputs: many CSV files under `data_sender_to_bq/data/`
-- Raw storage: BigQuery dataset `vertigo_case` table `user_level_daily_metrics`
-- Analytics output: BigQuery view/table `daily_metrics` created by dbt
-- Quality gates: dbt tests (not_null, accepted_values, expression checks)
+- Raw input: CSV files under `data_sender_to_bq/data/`
+- Raw table: `vertigo_case.user_level_daily_metrics`
+- Analytics output: `daily_metrics` (built by dbt)
+- Quality control: dbt tests
 
 ---
 
-## Repository Structure
+### Project Structure (Part 2)
 
 ```
 Part2/
   data_sender_to_bq/
-    data/                   # Raw CSV files (source exports)
-    sender.py               # Loads CSVs into BigQuery
-    vertigo-...json         # (LOCAL ONLY) service account key (MUST NOT be committed)
+    data/                  # Raw CSV exports
+    sender.py              # CSV → BigQuery loader
+    vertigo-...json        # LOCAL ONLY service account key
 
   dbt/
-    dbt_project.yml         # dbt project config
-    packages.yml            # dbt package dependencies
-    package-lock.yml        # resolved dependency versions
+    dbt_project.yml
+    packages.yml
+    package-lock.yml
     models/
-      sources.yml           # BigQuery source definitions + source tests
-      daily_metrics.sql     # transformation model (raw -> analytics)
-      daily_metrics.yml     # model documentation + model tests
-    target/
-      run_results.json      # dbt run/test results (generated artifact)
-    logs/                   # dbt logs (generated artifacts)
-    dbt_packages/           # installed packages (generated)
+      sources.yml          # Raw table definition + source tests
+      daily_metrics.sql    # Analytics transformation
+      daily_metrics.yml    # Model docs + tests
+    target/                # dbt run/test artifacts
+    logs/
+    dbt_packages/
 ```
 
-### Notes about generated folders
-In a “clean” dbt repo, these are usually not committed:
-- `dbt/target/`
-- `dbt/logs/`
-- `dbt/dbt_packages/`
-
-They are included here because this is a **case study** and the artifacts (like `run_results.json`) help reviewers verify execution.
+> Folders like `target/`, `logs/`, and `dbt_packages/` are usually not committed.
+> They are included here intentionally so reviewers can see actual dbt execution results.
 
 ---
 
-## BigQuery Setup
+### Step 1 — Load CSVs into BigQuery
 
-### Dataset and location
-- Project: `vertigo-483902`
+Script: `Part2/data_sender_to_bq/sender.py`
+
+What it does:
+- Reads multiple CSV files from `data/`
+- Loads them into BigQuery
+- First file uses `WRITE_TRUNCATE`
+- Remaining files use `WRITE_APPEND`
+
+This pattern allows clean table creation followed by incremental appends.
+
+If the first run is interrupted (e.g. Ctrl+C), the table may be left in a partial state.
+In that case, either truncate again or recreate the table.
+
+---
+
+### Step 2 — dbt Modeling
+
+Raw event-level data is not analysis-ready.
+
+dbt is used here to:
+- Standardize dimensions
+- Define KPIs in one place
+- Apply consistent null handling
+- Enforce data quality with tests
+
+---
+
+### Source Definition (sources.yml)
+
+The raw BigQuery table is registered as a dbt source:
+
 - Dataset: `vertigo_case`
-- Location: `europe-west1`
-
-Make sure your BigQuery dataset is created in the same location as your jobs, otherwise BigQuery will throw *location mismatch* errors.
-
----
-
-## Authentication & Authorization (Development)
-
-There are 2 common ways to authenticate during development:
-
-### Option A — Service Account Key (JSON) (used here during development)
-A service account key JSON can be used by tools/scripts to authenticate to GCP.
-
-**Important security rule:**
-- **Never commit** service account keys to GitHub.
-- Add this to your `.gitignore`:
-  ```gitignore
-  *.json
-  Part2/data_sender_to_bq/*.json
-  ```
-
-You typically set the environment variable:
-```bash
-export GOOGLE_APPLICATION_CREDENTIALS="/path/to/service-account.json"
-```
-
-On Windows (PowerShell):
-```powershell
-$env:GOOGLE_APPLICATION_CREDENTIALS="C:\path\to\service-account.json"
-```
-
-The service account must have permissions like:
-- `BigQuery Data Editor` (write tables)
-- `BigQuery Job User` (run load jobs / queries)
-- (Optional) `BigQuery Data Viewer` (read)
-
-### Option B — gcloud user auth (recommended for local dev)
-```bash
-gcloud auth application-default login
-```
-
-This creates ADC credentials that many GCP client libraries can use automatically.
-
----
-
-## Step 1 — Load CSV Data to BigQuery (sender.py)
-
-Folder: `Part2/data_sender_to_bq/`
-
-### What it does
-- Reads many CSV files from `data_sender_to_bq/data/`
-- Loads them into BigQuery table:
-  - First file: typically `WRITE_TRUNCATE` (create/replace)
-  - Remaining files: `WRITE_APPEND` (append)
-
-### Why this exists
-BigQuery is the “source of truth” for this case. dbt models build on top of the loaded table.
-
-> If you interrupt the first run (Ctrl+C), the destination table might be partially created.
-> In that case, re-run with a clean truncate on the first file, or delete/recreate the table.
-
----
-
-## Step 2 — dbt Project (Transform + Tests)
-
-Folder: `Part2/dbt/`
-
-### Why dbt?
-dbt provides:
-- **Version-controlled SQL transformations**
-- **Repeatable builds** (recreate models consistently)
-- **Automated data tests** (quality gates)
-- **Documentation** (model + column descriptions)
-
----
-
-## Source Definition (models/sources.yml)
-
-File: `models/sources.yml`
-
-Defines the raw BigQuery table as a dbt **source**:
-
-- Source: `vertigo_case`
 - Table: `user_level_daily_metrics`
 
-It also adds **source-level tests**, such as:
-- `not_null` for critical fields (`user_id`, `event_date`, `platform`)
-- numeric checks (e.g., revenue counts must be `>= 0` when present)
+Basic source tests are applied:
+- Critical fields must not be null
+- Numeric fields must be non-negative
 
-This ensures your raw data is “reasonable” before building analytics.
+This ensures the raw data is reasonable before analytics are built on top.
 
 ---
 
-## Transformation Model (models/daily_metrics.sql)
+### Analytics Model (daily_metrics.sql)
 
-File: `models/daily_metrics.sql`
-
-### What it builds
-A daily aggregation grouped by:
+The model produces daily aggregates grouped by:
 - `event_date`
 - `country`
 - `platform`
 
-Output metrics include:
-- `dau` (Daily Active Users) = `count(distinct user_id)`
-- revenue totals: `total_iap_revenue`, `total_ad_revenue`
-- `arpdau` = (total revenue) / dau
-- match KPIs: matches started per dau, win/defeat ratios
-- server error rate per dau
+Metrics include:
+- Daily active users (DAU)
+- In-app and ad revenue totals
+- ARPDAU
+- Match and win/defeat KPIs
+- Server error rates
 
-### Data cleansing logic (why it matters)
-The model intentionally normalizes and cleans the raw inputs:
-
-- `country` can be null/empty → bucketed as `UNKNOWN`
-- `platform` is standardized to uppercase (`ANDROID`, `IOS`)
-- numeric fields treat null as 0 to allow consistent aggregation
-- `SAFE_DIVIDE` is used to avoid divide-by-zero failures (returns `NULL` instead of crashing)
-
-### Why a model is needed
-Raw event-level data is not “analysis-ready”.
-The dbt model creates a stable dataset that analysts can query directly:
-- consistent dimensions
-- consistent KPIs
-- predictable null-handling
+Data cleanup rules include:
+- Missing countries bucketed as `UNKNOWN`
+- Platform normalized to `ANDROID` / `IOS`
+- Null numeric values treated as 0
+- `SAFE_DIVIDE` used to avoid divide-by-zero failures
 
 ---
 
-## Model Documentation & Tests (models/daily_metrics.yml)
+### Model Tests & Documentation (daily_metrics.yml)
 
-File: `models/daily_metrics.yml`
+This file adds:
+- Model-level documentation
+- Column descriptions
+- Data quality tests
 
-Adds:
-- model description
-- column-level tests
+Examples:
+- `platform` must be `ANDROID` or `IOS`
+- Revenue and counts must be >= 0
+- Ratio metrics must be between 0 and 1
 
-### Key tests included
-- `not_null` on required columns (event_date/country/platform/dau/revenues)
-- `accepted_values` for platform (`ANDROID`, `IOS`)
-- numeric sanity checks (>= 0) using `dbt_utils.expression_is_true`
-- ratio bounds:
-  - `win_ratio` between 0 and 1
-  - `defeat_ratio` between 0 and 1
-
-### Why tests are filtered with `where: ... is not null`
-Some metrics use `SAFE_DIVIDE`, which can return `NULL` when the denominator is 0.
-Instead of failing tests on valid NULL results, tests apply:
-- `where: metric is not null`
-
-This keeps tests strict *and* realistic.
+Some tests are filtered with `where: metric is not null` because `SAFE_DIVIDE` can
+legitimately return NULL when the denominator is zero.
 
 ---
 
-## Running dbt
+### Running dbt
 
-> dbt commands are executed from `Part2/dbt/`
+From `Part2/dbt/`:
 
-Typical workflow:
-
-1) Install packages:
 ```bash
 dbt deps
-```
-
-2) Build models + run tests:
-```bash
 dbt build
 ```
 
-3) Run only tests:
+Alternative commands:
 ```bash
 dbt test
-```
-
-4) Run only the model:
-```bash
 dbt run --select daily_metrics
 ```
 
 ---
 
-## dbt Profiles (BigQuery connection)
-
-dbt uses a `profiles.yml` file (typically located at `~/.dbt/profiles.yml`).
-
-Example BigQuery profile:
-
-```yaml
-vertigo_case_dbt:
-  target: dev
-  outputs:
-    dev:
-      type: bigquery
-      method: service-account
-      project: vertigo-483902
-      dataset: vertigo_case
-      location: europe-west1
-      keyfile: /path/to/service-account.json
-      threads: 4
-      timeout_seconds: 300
-```
-
-If using gcloud ADC instead, you can use:
-- `method: oauth`
-
----
-
-## Test Results & Artifacts (target/run_results.json)
+### dbt Artifacts
 
 File: `dbt/target/run_results.json`
 
-This is generated by dbt after `dbt build/test/run`.
+This shows:
+- Whether models and tests succeeded
+- The actual SQL executed in BigQuery
+- Execution metadata and cost signals
 
-### What to look for
-- Overall status: `pass` for tests, `success` for model builds
-- Execution metadata:
-  - dbt version: `1.11.2`
-  - location: `europe-west1`
-  - project: `vertigo-483902`
-- For each test:
-  - `compiled_code` shows the actual SQL dbt ran in BigQuery
-  - `bytes_processed` / `bytes_billed` show BigQuery cost signals
-  - `failures: 0` indicates test passed
-
-In the provided artifact:
-- Source tests (raw table) passed (not_null + numeric constraints)
-- Model `daily_metrics` built successfully
-- Model tests passed (platform values, ratios, non-negative metrics, etc.)
+All models and tests in this case ran successfully.
 
 ---
 
-## What this Part Demonstrates
+## Security Notes
 
-- **Data ingestion** into BigQuery from many CSVs
-- **Modeling** raw -> analytics using dbt
-- **Data quality enforcement** with tests
-- **Reproducibility** via dbt project structure and artifacts
-
----
-
-## Security Reminder
-
-If you used a service account key locally:
-- Revoke/rotate the key after finishing the case study
-- Never publish the key to GitHub
+- No secrets are committed to the repository
+- Service account keys are for local development only
+- Keys should be rotated or revoked after finishing the case study
 - Prefer `gcloud auth application-default login` for personal development
+
+---
+
+## Summary
+
+This case study demonstrates:
+- A production-style API deployed serverlessly on GCP
+- Secure PostgreSQL usage via Cloud SQL
+- Data ingestion into BigQuery
+- Analytics modeling and testing with dbt
+- Clean, reviewable, and reproducible workflows
+
+
 
 
 
