@@ -299,7 +299,7 @@ dbt is used here to:
 
 ---
 
-### Source Definition (sources.yml)
+### Source (sources.yml)
 
 The raw BigQuery table is registered as a dbt source:
 
@@ -400,6 +400,7 @@ This case study demonstrates:
 - Data ingestion into BigQuery
 - Analytics modeling and testing with dbt
 - Clean, reviewable, and reproducible workflows
+
 
 
 
