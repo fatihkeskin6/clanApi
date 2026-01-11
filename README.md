@@ -139,9 +139,9 @@ revision without requiring a separate CI/CD pipeline.
 
 ## API Endpoints
 
-Base URL (example):
+Base URL:
 ```
-https://<cloud-run-service-url>
+[https://<cloud-run-service-url>](https://clanapi-755545457074.europe-west1.run.app/)
 ```
 
 ### Health Check
@@ -244,6 +244,7 @@ This project is intentionally minimal and focused on:
 ## License
 
 MIT
+
 
 
 
