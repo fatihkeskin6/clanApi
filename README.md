@@ -285,10 +285,6 @@ What it does:
 - Remaining files use `WRITE_APPEND`
 
 This pattern allows clean table creation followed by incremental appends.
-
-If the first run is interrupted (e.g. Ctrl+C), the table may be left in a partial state.
-In that case, either truncate again or recreate the table.
-
 ---
 
 ### Step 2 — dbt Modeling
@@ -404,6 +400,7 @@ This case study demonstrates:
 - Data ingestion into BigQuery
 - Analytics modeling and testing with dbt
 - Clean, reviewable, and reproducible workflows
+
 
 
 
