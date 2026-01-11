@@ -12,7 +12,7 @@ A small **FastAPI + PostgreSQL** service to manage *clans*, deployed on **Google
 ## Architecture Overview
 
 ```
-Client
+Client Request
   |
   v
 Cloud Run (FastAPI)
@@ -21,7 +21,6 @@ Cloud Run (FastAPI)
 Cloud SQL (PostgreSQL)
 ```
 
-- The application **does not run locally**
 - Database access is handled via **Cloud SQL**
 - Authentication is handled by **Cloud Run service identity**
 - Configuration is injected via **environment variables**
@@ -58,7 +57,7 @@ CREATE TABLE public.clans (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-CREATE INDEX idx_clans_name_lower
+CREATE INDEX idx_clans_name_lower --In API '/search' endpoint searches as lower(name)  pgsql cant use index for case-insenseitive search, without index it will apply full scan index. so we apply index lower(name).
   ON public.clans (lower(name));
 ```
 
@@ -210,3 +209,4 @@ This project is intentionally minimal and focused on:
 ## License
 
 MIT
+
