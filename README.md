@@ -226,9 +226,12 @@ Rules:
 
 # Part 2 — BigQuery + dbt (Analytics)
 
-In this part,
-Raw CSV files are first loaded into BigQuery and then transformed using dbt into a clean and consistent dataset suitable for analysis.
-dbt is used to structure the transformations, apply basic data quality checks, and document the resulting tables in a way that makes the data easier to understand and reuse.
+In this part, raw CSV files are loaded into BigQuery.
+
+dbt is then used to:
+- clean and standardize the data
+- apply basic data quality checks
+- document the resulting tables for easier reuse
 ---
 
 ### High-level Flow
@@ -381,6 +384,7 @@ All models and tests in this case ran successfully.
 <img width="1536" height="847" alt="image" src="https://github.com/user-attachments/assets/000682b7-1d17-4dae-a20d-fb3d76526a0d" />
 
 https://lookerstudio.google.com/s/gq-6b3OewX8
+
 
 
 
