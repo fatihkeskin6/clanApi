@@ -45,7 +45,7 @@ Part1/
 
 This application uses **Google Cloud SQL for PostgreSQL**.
 
-### Table Definition
+### Table DDL
 
 The `clans` table is created in Cloud SQL.
 
@@ -384,6 +384,7 @@ All models and tests in this case ran successfully.
 <img width="1536" height="847" alt="image" src="https://github.com/user-attachments/assets/000682b7-1d17-4dae-a20d-fb3d76526a0d" />
 
 https://lookerstudio.google.com/s/gq-6b3OewX8
+
 
 
 
