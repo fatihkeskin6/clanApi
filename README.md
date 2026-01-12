@@ -167,8 +167,8 @@ Response:
 Body:
 ```json
 {
-  "name": "Night Owls",
-  "region": "eu"
+  "name": "Tokyo Crew",
+  "region": "ap"
 }
 ```
 
@@ -195,7 +195,7 @@ Response:
 
 ### Search Clans
 
-`GET /clans/search?name=owl`
+`GET /clans/search?name=tok`
 
 Rules:
 - Minimum **3 characters**
@@ -380,5 +380,6 @@ All models and tests in this case ran successfully.
 <img width="1536" height="847" alt="image" src="https://github.com/user-attachments/assets/000682b7-1d17-4dae-a20d-fb3d76526a0d" />
 
 https://lookerstudio.google.com/s/gq-6b3OewX8
+
 
 
