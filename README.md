@@ -130,11 +130,17 @@ No database credentials are stored in the repository.
 
 ## Deployment Model (Cloud Run)
 
-This service is continuously deployed from a GitHub repository using
-Cloud Run's native source integration. Each commit triggers a new
+- This service is continuously deployed from a GitHub repository using
+- Cloud Run's native source integration. Each commit triggers a new
 revision without requiring a separate CI/CD pipeline.
+---
+## Dockerization
 
-
+- The Clan API is packaged as a Docker container and runs consistently across local and cloud environments
+- The application is built using a single `Dockerfile`
+- Dependencies are installed via `requirements.txt`
+- The container exposes the FastAPI application using **Uvicorn**
+- Cloud Run builds and runs this container directly
 ---
 
 ## API Endpoints
@@ -384,6 +390,7 @@ All models and tests in this case ran successfully.
 <img width="1536" height="847" alt="image" src="https://github.com/user-attachments/assets/000682b7-1d17-4dae-a20d-fb3d76526a0d" />
 
 https://lookerstudio.google.com/s/gq-6b3OewX8
+
 
 
 
