@@ -42,7 +42,8 @@ models:
 
       - name: arpdau
         data_tests:
-          # SAFE_DIVIDE -> null olabilir (teoride dau=0). null'ları filtreleyip kontrol ediyoruz.
+          # SAFE_DIVIDE may return NULL when DAU is zero;
+          # tests are applied only to non-null values
           - dbt_utils.expression_is_true:
               arguments:
                 expression: ">= 0"
@@ -66,7 +67,8 @@ models:
 
       - name: win_ratio
         data_tests:
-          # match_end_count=0 ise SAFE_DIVIDE -> null olur, null'ları filtreliyoruz
+          # When match_end_count is zero, SAFE_DIVIDE returns NULL;
+          # NULL values are excluded from the test
           - dbt_utils.expression_is_true:
               arguments:
                 expression: "between 0 and 1"
