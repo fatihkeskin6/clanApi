@@ -14,8 +14,9 @@ sources:
           - name: event_date
             tests:
               - not_null
-
-          # country kaynakta null gelebilir; modelde COALESCE ile handle ediyoruz
+              
+          # country can be NULL or empty in the raw data;
+          # it is handled later in the staging layer using COALESCE
           - name: country
 
           - name: platform
@@ -32,6 +33,8 @@ sources:
 
           - name: ad_revenue
             tests:
+              # Revenue values should never be negative;
+              # NULL values are ignored at source level
               - dbt_utils.expression_is_true:
                   arguments:
                     expression: ">= 0"
