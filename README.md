@@ -64,6 +64,9 @@ Notes:
 - `id` is generated using `gen_random_uuid()` (pgcrypto extension)
 - `region` is stored uppercased by the API
 - Case-insensitive search is supported via `lower(name)` index
+
+<img width="1919" height="569" alt="image" src="https://github.com/user-attachments/assets/48c47960-8e93-4787-8a59-6cf81e44c8ee" />
+
 ---
 
 ## File & Directory Overview
@@ -390,6 +393,7 @@ All models and tests in this case ran successfully.
 <img width="1536" height="847" alt="image" src="https://github.com/user-attachments/assets/000682b7-1d17-4dae-a20d-fb3d76526a0d" />
 
 https://lookerstudio.google.com/s/gq-6b3OewX8
+
 
 
 
