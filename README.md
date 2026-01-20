@@ -119,6 +119,11 @@ The application **relies entirely on environment variables** provided by Cloud R
 |--------|-------------|
 | `DATABASE_URL` | Cloud SQL PostgreSQL connection string |
 
+Some of the configurations of Cloud Run
+<img width="1000" height="80" alt="image" src="https://github.com/user-attachments/assets/a8e46429-1c31-404f-ac3d-004f21555880" />
+<img width="500" height="260" alt="image" src="https://github.com/user-attachments/assets/19b81e37-455e-411e-bdc2-091fcf9eab3a" />
+<img width="450" height="240" alt="image" src="https://github.com/user-attachments/assets/4579bd92-4004-4137-a18a-99fb1882bed9" />
+
 Format:
 ```
 postgresql://USERNAME:PASSWORD@/DB_NAME?host=/cloudsql/PROJECT_ID:REGION:INSTANCE_NAME
@@ -136,6 +141,8 @@ No database credentials are stored in the repository.
 - This service is continuously deployed from a GitHub repository using
 - Cloud Run's native source integration. Each commit triggers a new
 revision without requiring a separate CI/CD pipeline.
+<img width="500" height="475" alt="image" src="https://github.com/user-attachments/assets/6793ae3d-feb6-44a4-86b2-793b26dffafe" />
+
 ---
 ## Dockerization
 
@@ -393,6 +400,7 @@ All models and tests in this case ran successfully.
 <img width="1536" height="847" alt="image" src="https://github.com/user-attachments/assets/000682b7-1d17-4dae-a20d-fb3d76526a0d" />
 
 https://lookerstudio.google.com/s/gq-6b3OewX8
+
 
 
 
